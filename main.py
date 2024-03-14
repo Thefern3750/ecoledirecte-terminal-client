@@ -1,11 +1,15 @@
-import requests
-import time
-import getpass
-import datetime
-import base64
-from bs4 import BeautifulSoup
-import json
-import os
+try:
+    import requests
+    import time
+    import getpass
+    import datetime
+    import base64
+    from bs4 import BeautifulSoup
+    import json
+    import os
+except ModuleNotFoundError:
+    print("A module couldn't be find, please check the requirements.txt file, and install the missing modules\nAuto quit.")
+    quit()
 
 commands = {
             "cd",
@@ -348,8 +352,11 @@ class Login():
         try:
             internet_check = requests.get("https://google.com")
         except requests.ConnectionError:
-            print("Look like you're not connected to the Internet, please check your Internet connection before restarting the program ...")
+            print("Look like you're not connected to the Internet, please check your Internet connection before restarting the program ...\nAuto quit in 5 seconds")
+            time.sleep(5)
             quit()
+        except:
+            print("The Internet connection check couldn't be done, please report this to the dev")
             
         self.get_credentials()
 
