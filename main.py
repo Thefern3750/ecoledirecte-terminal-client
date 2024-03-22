@@ -1,3 +1,5 @@
+version = 1.2
+
 try:
     import requests
     import time
@@ -10,6 +12,38 @@ try:
 except ModuleNotFoundError:
     print("A module couldn't be find, please check the requirements.txt file, and install the missing modules\nAuto quit.")
     quit()
+
+def createLogFile():
+    # Check if log file is existing, if not it's creating one
+    try:
+        with open(f"C:/Users/{os.getlogin()}/AppData/Roaming/Ecoledirecte {version}/log.txt", "r") as log:
+            log.close()
+    except FileNotFoundError:
+        os.mkdir(f"C:/Users/{os.getlogin()}/AppData/Roaming/Ecoledirecte {version}")
+        with open(f"C:/Users/{os.getlogin()}/AppData/Roaming/Ecoledirecte {version}/log.txt", "x") as log:
+            log.write(f"Log file created for Ecoledirecte {version}\nProgram by Thefern (thefern_off on Discord)")
+            log.close()
+
+createLogFile()
+
+def get_log_date():
+    clock = time.localtime()
+    clock = f"{clock.tm_hour}h:{clock.tm_min}min:{clock.tm_sec}sec"
+
+    logTime = f"[{datetime.date.today()} {clock}]"
+    return logTime
+
+def write_log(str):
+    try:
+        with open(f"C:/Users/{os.getlogin()}/AppData/Roaming/Ecoledirecte {version}/log.txt", "a") as log:
+            logText = f"\n{get_log_date()} {str}"
+            log.write(logText)
+            log.close()
+    except FileNotFoundError:
+        createLogFile()
+
+write_log("All modules are loaded")
+time.sleep(1)
 
 commands = {
             "cd",
@@ -26,6 +60,7 @@ categories = {
             "Notes",
             "EDT",
             "Agenda",
+            "Messages",
             "-help",
 }
 
@@ -54,6 +89,7 @@ def check_command(commandSeparators, id, token, username, etablissement, command
                 pass
         else:
             print(f"Command '{commandSeparators}' not found.")
+            write_log(f"{commandSeparators} : Command not found")
 
 def cd(id, token, username, etablissement, command):
         try:
@@ -64,21 +100,36 @@ def cd(id, token, username, etablissement, command):
         if dir in [category.lower() for category in categories]:
             if dir == "notes":
                 Notes(id, token, username, etablissement)
+                write_log(f"Going in {dir} section")
+
             elif dir == "edt":
                 EDT(id, token, username, etablissement)
+                write_log(f"Going in {dir} section")
+
             elif dir == "agenda":
                 Agenda(id, token, username, etablissement)
+                write_log(f"Going in {dir} section")
+
+            elif dir == "messages":
+                Messages(id, token, username, etablissement)
+                write_log(f"Going in {dir} section")
+
             elif dir == "-help":
                 print("""DIR HELP DIRECTORIES:
                     The available directories are: Notes, EDT, Agenda""")
+                write_log(f"Sending avalaible directories")
+
             elif dir == "accueil":
                 Main(id, token, username, etablissement)
+                write_log(f"Going in {dir} section")
         else:
             print(f"'{dir.capitalize()}' is not a valid directory. Please type 'cd -help' to see the correct directories")
+            write_log(f"{dir.capitalize()} : Not a valid directory")
 
 def ls(dir, id, token, command):
         if dir == "Main":
-            print("There's nothing to show here... yet")
+            print("/edt      /agenda       /notes       /messages")
+            write_log(f"Printing {dir} contenue")
         elif dir == "Notes":
             url = f"https://api.ecoledirecte.com/v3/eleves/{id}/notes.awp?verbe=get&v=4.46.3"
             
@@ -141,6 +192,7 @@ def ls(dir, id, token, command):
                         grades.append(", ".join(map(str, grade)) if isinstance(grade, list) else str(grade))
 
                 print(f"{subject:<{max_len}} | {' | '.join([f'{g:^{w}}' for g, w in zip(grades, column_widths)])}")
+                write_log(f"Printing {dir} contenue")
 
         elif dir == "Agenda":
             try:
@@ -166,6 +218,7 @@ def ls(dir, id, token, command):
                         homeworks_data = response["data"]["matieres"]
                     except KeyError:
                         print("There is no homeworks for this day")
+                        
 
                     for homework in homeworks_data:
                         nb = 1
@@ -180,8 +233,10 @@ def ls(dir, id, token, command):
                         print(f"Test ? : {test}")
                         print(f"Give online ? : {enLigne}")
                         print(f"Homework : {BeautifulSoup(base64.b64decode(contenu).decode('utf-8'), 'html.parser').get_text()}\n----------------------")
+                        write_log(f"Printing {dir} contenue")
                 else:
                     print("The date is not valid ! Please type a date in the format YYYY-MM-DD")
+                    write_log("Date format not valid for homework")
 
             except IndexError:
                 url = f"https://api.ecoledirecte.com/v3/Eleves/{id}/cahierdetexte.awp?verbe=get&v=4.46.3"
@@ -215,6 +270,7 @@ def ls(dir, id, token, command):
                         print(f"Gave the : {gaveThe}\n")
 
                         nb = nb + 1
+                        write_log(f"Printing {dir} contenue")
 
         elif dir == "EDT":
             url = f"https://api.ecoledirecte.com/v3/E/{id}/emploidutemps.awp?verbe=get&v=4.46.3"
@@ -271,8 +327,10 @@ def ls(dir, id, token, command):
                             room = course["salle"]
                             print("{:<20} | {:<15} | {:<15} | {:<20} | {:<10}".format(subject, start_time, end_time, professor, room))
                         print("=" * 80)
+                        write_log(f"Printing {dir} contenue")
                 else:
                     print("The date is not valid ! Please type a date in the format YYYY-MM-DD")
+                    write_log("Date format for schedule not valid")
             except IndexError:
                 aujd = datetime.date.today()
 
@@ -326,25 +384,60 @@ def ls(dir, id, token, command):
                         room = course["salle"]
                         print("{:<20} | {:<15} | {:<15} | {:<20} | {:<10}".format(subject, start_time, end_time, professor, room))
                     print("=" * 80)
+                    write_log(f"Printing {dir} contenue")
 
+        elif dir == "Messages":
+            url = f"https://api.ecoledirecte.com/v3/eleves/{id}/messages.awp?force=false&typeRecuperation=received&idClasseur=0&orderBy=date&order=desc&query=&onlyRead=&page=0&itemsPerPage=100&getAll=0&verbe=get&v=4.53.2"
+
+            data = {
+                    "anneeMessages": "2023-2024"
+            }
+
+            headers = {
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Accept": "application/json, text/plain, */*",
+                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36",
+                "X-Token": token
+            }
+
+            json_data = json.dumps(data)
+
+            response = requests.post(url, data={'data': json_data}, headers=headers)
+            response = response.json()
+
+            for message in response["data"]["messages"]["received"]:
+                subject = message["subject"]
+                sender = message["from"]["name"]
+
+                print(f"Message from {sender} : {subject}")
+            
+                write_log(f"Printing {dir} contenue")
 
 def help():
     print("""LIST OF COMMANDS :
-          cd : Use it to change of category, see cd -help for more informations
+          cd : Use it to change of category, see cd -help for more information
           ls : See the contenue of the category (like grades, schedule)
           clear : Clear the terminal
           logout : Return to the login page
           exit : Exit the program""")
+    write_log("Sending command list")
 
 def clear():
     os.system('cls' if os.name == 'nt' else 'clear')
+    write_log("Clearing the console")
 
 def logout():
     os.system('cls' if os.name == 'nt' else 'clear')
+    write_log("User has logout")
+    time.sleep(1)
+    write_log("------------------------------------------------------------------------")
     Login()
 
 def exit():
     os.system('cls' if os.name == 'nt' else 'clear')
+    write_log("User has exited the program")
+    time.sleep(1)
+    write_log("------------------------------------------------------------------------")
     quit()
 
 class Login():
@@ -353,10 +446,15 @@ class Login():
             internet_check = requests.get("https://google.com")
         except requests.ConnectionError:
             print("Look like you're not connected to the Internet, please check your Internet connection before restarting the program ...\nAuto quit in 5 seconds")
+            write_log("Client not connected to the Internet, auto quit in 5sec")
             time.sleep(5)
+            write_log("Client has quit by the program.")
+            time.sleep(1)
+            write_log("------------------------------------------------------------------------")
             quit()
         except:
             print("The Internet connection check couldn't be done, please report this to the dev")
+            write_log("ERROR : The Internet connection check couldn't be done")
             
         self.get_credentials()
 
@@ -399,6 +497,7 @@ class Login():
         credentials_valid = False
 
         while not credentials_valid:
+            write_log("Sending connection request to Ecoledirecte API")
             response = requests.post(self.url, data={'data': json_data}, headers=self.headers)
 
             if response.status_code == 200:
@@ -406,6 +505,7 @@ class Login():
 
                 if json_response["code"] == 200:
                     print(f"You're logged as {self.identifiant}")
+                    write_log(f"Client is connected as {self.identifiant}")
                     time.sleep(1)
 
                     id = json_response["data"]["accounts"][0]["id"]
@@ -418,10 +518,12 @@ class Login():
 
                 elif json_response["code"] == 505:
                     print("Invalid username or password")
+                    write_log("The client input incorrect credentials")
                     time.sleep(1)
                     self.get_credentials()
             else:
                 print(f"Error : {response.status_code}")
+                write_log(f"Unexpected ERROR : {response.status_code}")
 
 class Main():
     def __init__(self, id, token, username, etablissement):
@@ -493,6 +595,26 @@ class EDT():
         self.etablissement = etablissement
 
         self.directory = f"[{self.username}@{self.etablissement}/edt] $ "
+
+        self.main()
+
+    def main(self):
+        self.command = input(self.directory)
+        commandSeparators = self.command.split(" ",1)[0]
+        check_command(commandSeparators, self.id, self.token, self.username, self.etablissement, self.command, self.dir)
+
+        self.main()
+
+class Messages():
+    def __init__(self, id, token, username, etablissement):
+        self.dir = "Messages"
+
+        self.id = id
+        self.token = token
+        self.username = username
+        self.etablissement = etablissement
+
+        self.directory = f"[{self.username}@{self.etablissement}/messages] $ "
 
         self.main()
 
