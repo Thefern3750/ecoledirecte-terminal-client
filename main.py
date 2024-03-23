@@ -192,7 +192,7 @@ def ls(dir, id, token, command):
                         grades.append(", ".join(map(str, grade)) if isinstance(grade, list) else str(grade))
 
                 print(f"{subject:<{max_len}} | {' | '.join([f'{g:^{w}}' for g, w in zip(grades, column_widths)])}")
-                write_log(f"Printing {dir} contenue")
+            write_log(f"Printing {dir} contenue")
 
         elif dir == "Agenda":
             try:
@@ -233,7 +233,7 @@ def ls(dir, id, token, command):
                         print(f"Test ? : {test}")
                         print(f"Give online ? : {enLigne}")
                         print(f"Homework : {BeautifulSoup(base64.b64decode(contenu).decode('utf-8'), 'html.parser').get_text()}\n----------------------")
-                        write_log(f"Printing {dir} contenue")
+                    write_log(f"Printing {dir} contenue")
                 else:
                     print("The date is not valid ! Please type a date in the format YYYY-MM-DD")
                     write_log("Date format not valid for homework")
@@ -270,7 +270,7 @@ def ls(dir, id, token, command):
                         print(f"Gave the : {gaveThe}\n")
 
                         nb = nb + 1
-                        write_log(f"Printing {dir} contenue")
+                write_log(f"Printing {dir} contenue")
 
         elif dir == "EDT":
             url = f"https://api.ecoledirecte.com/v3/E/{id}/emploidutemps.awp?verbe=get&v=4.46.3"
@@ -384,7 +384,7 @@ def ls(dir, id, token, command):
                         room = course["salle"]
                         print("{:<20} | {:<15} | {:<15} | {:<20} | {:<10}".format(subject, start_time, end_time, professor, room))
                     print("=" * 80)
-                    write_log(f"Printing {dir} contenue")
+                write_log(f"Printing {dir} contenue")
 
         elif dir == "Messages":
             url = f"https://api.ecoledirecte.com/v3/eleves/{id}/messages.awp?force=false&typeRecuperation=received&idClasseur=0&orderBy=date&order=desc&query=&onlyRead=&page=0&itemsPerPage=100&getAll=0&verbe=get&v=4.53.2"
@@ -411,7 +411,7 @@ def ls(dir, id, token, command):
 
                 print(f"Message from {sender} : {subject}")
             
-                write_log(f"Printing {dir} contenue")
+            write_log(f"Printing {dir} contenue")
 
 def help():
     print("""LIST OF COMMANDS :
