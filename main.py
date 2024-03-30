@@ -1,4 +1,4 @@
-version = 1.2
+version = 1.3
 
 try:
     import requests
@@ -13,21 +13,20 @@ except ModuleNotFoundError:
     print("A module couldn't be find, please check the requirements.txt file, and install the missing modules\nAuto quit.")
     quit()
 
-def createLogFile():
-    # Check if log file is existing, if not it's creating one
-    try:
-        with open(f"C:/Users/{os.getlogin()}/AppData/Roaming/Ecoledirecte {version}/log.txt", "r") as log:
-            log.close()
-    except FileNotFoundError:
-        try:
-            os.mkdir(f"C:/Users/{os.getlogin()}/AppData/Roaming/Ecoledirecte {version}")
-        except FileExistsError:
-            pass
-        with open(f"C:/Users/{os.getlogin()}/AppData/Roaming/Ecoledirecte {version}/log.txt", "x") as log:
-            log.write(f"Log file created for Ecoledirecte {version}\nProgram by Thefern (thefern_off on Discord)")
-            log.close()
+def isDirExist(path):
+    if not os.path.exists(path):
+        os.makedirs(path, exist_ok=True)
 
-createLogFile()
+def createLogFile(version):
+    logPath = os.path.expanduser(f"~\\AppData\\Roaming\\Ecoledirecte {version}")
+    isDirExist(logPath)
+    
+    log_file_path = os.path.join(logPath, "log.txt")
+    if not os.path.exists(log_file_path):
+        with open(log_file_path, "w") as log_file:
+            log_file.write(f"Log file created for Ecoledirecte {version}\nProgram by Thefern (thefern_off on Discord)")
+
+createLogFile(version)
 
 def get_log_date():
     clock = time.localtime()
@@ -43,23 +42,18 @@ def write_log(str):
             log.write(logText)
             log.close()
     except FileNotFoundError:
-        createLogFile()
+        createLogFile(version)
 
 write_log("All modules are loaded")
 time.sleep(1)
 
 def createConfFile():
-    # Check if the file is existing, if not it's creating one
-    try:
-        with open(f"C:/Users/{os.getlogin()}/AppData/Roaming/Ecoledirecte {version}/config.json", "r") as conf:
-            conf.close()
-            write_log("Config file already existing")
-    except FileNotFoundError:
-        try:
-            os.mkdir(f"C:/Users/{os.getlogin()}/AppData/Roaming/Ecoledirecte {version}")
-        except FileExistsError:
-            pass
-        with open(f"C:/Users/{os.getlogin()}/AppData/Roaming/Ecoledirecte {version}/config.json", "x") as conf:
+    confPath = os.path.expanduser(f"~\\AppData\\Roaming\\Ecoledirecte {version}")
+    isDirExist(confPath)
+    
+    conf_file_path = os.path.join(confPath, "config.json")
+    if not os.path.exists(conf_file_path):
+        with open(conf_file_path, "w") as conf_file:
             confFile = {
                 "cn":"",
                 "cv":""
@@ -67,9 +61,9 @@ def createConfFile():
 
             json_data = json.dumps(confFile, indent=4)
 
-            conf.write(json_data)
+            conf_file.write(json_data)
 
-            conf.close()
+            conf_file.close()
             write_log("Config file created")
 
 createConfFile()
@@ -644,7 +638,6 @@ class Login():
             else:
                 print(f"Error : {response.status_code}")
                 write_log(f"Unexpected ERROR : {response.status_code}")
-
 class Main():
     def __init__(self, id, token, username, etablissement):
         self.dir = "Main"
@@ -664,7 +657,6 @@ class Main():
         check_command(commandSeparators, self.id, self.token, self.username, self.etablissement, self.command, self.dir)
 
         self.main()
-
 class Notes():
     def __init__(self, id, token, username, etablissement):
         self.dir = "Notes"
@@ -684,7 +676,6 @@ class Notes():
         check_command(commandSeparators, self.id, self.token, self.username, self.etablissement, self.command, self.dir)
 
         self.main()
-
 class Agenda():
     def __init__(self, id, token, username, etablissement):
         self.dir = "Agenda"
@@ -704,7 +695,6 @@ class Agenda():
         check_command(commandSeparators, self.id, self.token, self.username, self.etablissement, self.command, self.dir)
 
         self.main()
-
 class EDT():
     def __init__(self, id, token, username, etablissement):
         self.dir = "EDT"
@@ -724,7 +714,6 @@ class EDT():
         check_command(commandSeparators, self.id, self.token, self.username, self.etablissement, self.command, self.dir)
 
         self.main()
-
 class Messages():
     def __init__(self, id, token, username, etablissement):
         self.dir = "Messages"
