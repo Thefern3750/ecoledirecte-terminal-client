@@ -19,7 +19,10 @@ def createLogFile():
         with open(f"C:/Users/{os.getlogin()}/AppData/Roaming/Ecoledirecte {version}/log.txt", "r") as log:
             log.close()
     except FileNotFoundError:
-        os.mkdir(f"C:/Users/{os.getlogin()}/AppData/Roaming/Ecoledirecte {version}")
+        try:
+            os.mkdir(f"C:/Users/{os.getlogin()}/AppData/Roaming/Ecoledirecte {version}")
+        except FileExistsError:
+            pass
         with open(f"C:/Users/{os.getlogin()}/AppData/Roaming/Ecoledirecte {version}/log.txt", "x") as log:
             log.write(f"Log file created for Ecoledirecte {version}\nProgram by Thefern (thefern_off on Discord)")
             log.close()
@@ -44,6 +47,32 @@ def write_log(str):
 
 write_log("All modules are loaded")
 time.sleep(1)
+
+def createConfFile():
+    # Check if the file is existing, if not it's creating one
+    try:
+        with open(f"C:/Users/{os.getlogin()}/AppData/Roaming/Ecoledirecte {version}/config.json", "r") as conf:
+            conf.close()
+            write_log("Config file already existing")
+    except FileNotFoundError:
+        try:
+            os.mkdir(f"C:/Users/{os.getlogin()}/AppData/Roaming/Ecoledirecte {version}")
+        except FileExistsError:
+            pass
+        with open(f"C:/Users/{os.getlogin()}/AppData/Roaming/Ecoledirecte {version}/config.json", "x") as conf:
+            confFile = {
+                "cn":"",
+                "cv":""
+            }
+
+            json_data = json.dumps(confFile, indent=4)
+
+            conf.write(json_data)
+
+            conf.close()
+            write_log("Config file created")
+
+createConfFile()
 
 commands = {
             "cd",
@@ -473,13 +502,14 @@ class Login():
 
 """)
         self.identifiant = input("\nlogin as : ")
-        self.password = getpass.getpass(f"{self.identifiant}'s password : ")
+        self.password = getpass.getpass(f"{self.identifiant}'s password : ")        
 
-        self.data = {
+        self.data={
             "identifiant": self.identifiant,
             "motdepasse": self.password,
             "isReLogin": False,
-            "uuid": ""
+            "uuid": "",
+            "fa": []
         }
 
         self.headers = {
@@ -488,7 +518,7 @@ class Login():
             "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36",
         }
 
-        self.url = "https://api.ecoledirecte.com/v3/login.awp?v=4.38.0"
+        self.url = "https://api.ecoledirecte.com/v3/login.awp?v=4.53.4"
 
         self.login()
     
@@ -503,18 +533,108 @@ class Login():
             if response.status_code == 200:
                 json_response = json.loads(response.text)
 
-                if json_response["code"] == 200:
-                    print(f"You're logged as {self.identifiant}")
-                    write_log(f"Client is connected as {self.identifiant}")
-                    time.sleep(1)
-
-                    id = json_response["data"]["accounts"][0]["id"]
+                if json_response["code"] == 250:
                     token = json_response["token"]
-                    etablissement = json_response["data"]["accounts"][0]["nomEtablissement"]
-                    credentials_valid = True
 
-                    os.system('cls' if os.name == 'nt' else 'clear')
-                    Main(id, token, self.identifiant, etablissement)
+                    self.headers = {
+                        "Content-Type": "application/form-data",
+                        "Accept": "application/json, text/plain, */*",
+                        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36",
+                        "X-Token": token
+                    }
+
+                    self.data = {}
+
+                    json_data = json.dumps(self.data)
+
+                    self.url = "https://api.ecoledirecte.com/v3/connexion/doubleauth.awp?verbe=get&v=4.53.4"
+
+                    response = requests.post(self.url, data={'data': json_data}, headers=self.headers)
+
+                    question = response.json()["data"]["question"]
+                    question = base64.b64decode(question).decode("utf-8")
+
+                    propositions = response.json()["data"]["propositions"]
+
+                    print(f"For security purposes, please answer this question :\n{question}")
+
+                    nb = 1
+                    for proposition in propositions:
+                        proposition = base64.b64decode(proposition).decode("utf-8")
+                        print(f"Choice n°{nb} {proposition}")
+                        nb = nb + 1
+
+                    selection = int(input("Enter the number of your choice: "))
+                    selection = base64.b64decode(propositions[selection - 1]).decode("utf-8") # Getting the answer
+                    selection = base64.b64encode(selection.encode("utf-8")).decode("utf-8") # Encoding it back to base64
+
+                    self.data = {
+                        "choix": selection
+                    }
+                    json_data = json.dumps(self.data)
+
+                    self.url = "https://api.ecoledirecte.com/v3/connexion/doubleauth.awp?verbe=post&v=4.53.4"
+
+                    response = requests.post(self.url, data={'data': json_data}, headers=self.headers)
+                    
+                    if not response.json()["code"] == 200:
+                        print(f"Invalid answer, please try again")
+                        write_log(f"Wrong answer at the security question")
+                        time.sleep(2)
+                        self.get_credentials()
+                    else:
+                        cn = response.json()["data"]["cn"]
+                        cv = response.json()["data"]["cv"]
+
+                        with open(f"C:/Users/{os.getlogin()}/AppData/Roaming/Ecoledirecte {version}/config.json", "r+") as conf:
+                            conf_data = json.load(conf)
+                            conf_data["cn"] = cn
+                            conf_data["cv"] = cv
+
+                            conf.seek(0)
+
+                            json.dump(conf_data, conf, indent=4)
+                            conf.truncate()
+
+                            self.data={
+                                "identifiant": self.identifiant,
+                                "motdepasse": self.password,
+                                "isReLogin": False,
+                                "cn": cn,
+                                "cv": cv,
+                                "uuid": "",
+                                "fa": [
+                                    {
+                                        "cn": cn,
+                                        "cv": cv
+                                    }
+                                ]
+                            }
+                            json_data = json.dumps(self.data)
+
+                            self.headers = {
+                                "Content-Type": "application/form-data",
+                                "Accept": "application/json, text/plain, */*",
+                                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36",
+                                "X-Token": token
+                            }
+
+                            self.url = "https://api.ecoledirecte.com/v3/login.awp?v=4.53.4"
+
+                            response = requests.post(self.url, data={'data': json_data}, headers=self.headers)
+                            json_response = response.json()
+
+                            print(f"You're logged as {self.identifiant}")
+                            write_log(f"Client is connected as {self.identifiant}")
+                            time.sleep(1)
+
+                            id = json_response["data"]["accounts"][0]["id"]
+                            token = json_response["token"]
+                            etablissement = json_response["data"]["accounts"][0]["nomEtablissement"]
+                            credentials_valid = True
+
+                            os.system('cls' if os.name == 'nt' else 'clear')
+                            Main(id, token, self.identifiant, etablissement)
 
                 elif json_response["code"] == 505:
                     print("Invalid username or password")
