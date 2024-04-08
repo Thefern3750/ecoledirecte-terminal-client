@@ -68,6 +68,7 @@ def createConfFile():
 
 createConfFile()
 
+# When adding a new command, don't forget to add it in the commands list
 commands = {
             "cd",
             "ls",
@@ -78,6 +79,7 @@ commands = {
             "",
 }
 
+# When adding a new category, don't forget to add it in the categories list
 categories = {
             "Accueil",
             "Notes",
