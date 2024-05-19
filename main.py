@@ -76,7 +76,7 @@ commands = {
             "exit",
             "logout",
             "help",
-            "",
+            "", # This is for sending back the directory if you write nothing
 }
 
 # When adding a new category, don't forget to add it in the categories list
@@ -430,11 +430,36 @@ def ls(dir, id, token, command):
             response = requests.post(url, data={'data': json_data}, headers=headers)
             response = response.json()
 
-            for message in response["data"]["messages"]["received"]:
-                subject = message["subject"]
-                sender = message["from"]["name"]
+            displayMsg = 0
 
-                print(f"Message from {sender} : {subject}")
+            # its sure that its not optimized but it works, so fuck u <3
+            try:
+                try:
+                    nbMsg = int(command.split(" ", 2)[1])
+
+                    for message in response["data"]["messages"]["received"]:
+                        if displayMsg < nbMsg:
+                            subject = message["subject"]
+                            sender = message["from"]["name"]
+                            messageId = message["id"]
+                            print(f"[{messageId}] $ Message from {sender} : {subject}")
+                            displayMsg = displayMsg + 1
+                        else:
+                            break
+                except ValueError:
+                    print("Please enter a valid number")
+                    write_log("Invalid number for messages")
+
+            except IndexError:
+                for message in response["data"]["messages"]["received"]:
+                    if displayMsg < 5:
+                        subject = message["subject"]
+                        sender = message["from"]["name"]
+                        messageId = message["id"]
+                        print(f"[{messageId}] $ Message from {sender} : {subject}")
+                        displayMsg = displayMsg + 1
+                    else:
+                        break
             
             write_log(f"Printing {dir} contenue")
 

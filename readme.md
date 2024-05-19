@@ -16,8 +16,10 @@ N'oubliez pas d'installer les dépendances nécessaire pour utiliser le fichier 
 ## 2. Spécificités
 Pour voir les différentes catégories disponibles, vous devez utiliser la commande `cd -help`.
 
-Pour voir son emploi du temps d'une semaine choisie, vous devez d'abord vous rendre dans le répertoire `edt` puis lancer la commande `ls YYYY-MM-DD` (YYYY = année, MM = mois, DD = jour . Vous pouvez mettre n'importe quel jour de la semaine désirée)
+Pour voir son emploi du temps d'une semaine choisie, vous devez d'abord vous rendre dans le répertoire `edt` puis lancer la commande `ls YYYY-MM-DD` (YYYY = année, MM = mois, DD = jour . Vous pouvez mettre n'importe quel jour de la semaine désirée).
 
-Pour voir les devoirs détaillés, vous devez d'abord vous rendre dans le répertoire `agenda` puis lancer la commande `ls YYYY-MM-DD` (si dans le jour choisi il n'y a aucun devoir, alors rien ne s'affichera)
+Pour voir les devoirs détaillés, vous devez d'abord vous rendre dans le répertoire `agenda` puis lancer la commande `ls YYYY-MM-DD` (si dans le jour choisi il n'y a aucun devoir, alors rien ne s'affichera).
 
-Le fichier de logs est disponible dans `C:\Users\UTILISATEUR\AppData\Roaming\Ecoledirecte VERSION\`
+Le fichier de logs est disponible dans `C:\Users\UTILISATEUR\AppData\Roaming\Ecoledirecte VERSION\`.
+
+Par défaut, vous pouvez voir les 5 derniers messages de la messagerie, si vous souhaitez en voir plus, ou moins, vous devez simplement rajouter UN NOMBRE à le suite de la commande `ls`.
