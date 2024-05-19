@@ -432,27 +432,27 @@ def ls(dir, id, token, command):
 
             displayMsg = 0
 
-            # its sure that its not optimized but it works, so fuck u <3
             try:
                 try:
-                    nbMsg = int(command.split(" ", 2)[1])
+                    idMsg = int(command.split(" ", 2)[1])
 
-                    for message in response["data"]["messages"]["received"]:
-                        if displayMsg < nbMsg:
-                            subject = message["subject"]
-                            sender = message["from"]["name"]
-                            messageId = message["id"]
-                            print(f"[{messageId}] $ Message from {sender} : {subject}")
-                            displayMsg = displayMsg + 1
-                        else:
-                            break
+                    url = f"https://api.ecoledirecte.com//v3/eleves/{id}/messages/{idMsg}.awp?verbe=get&mode=destinataire&v=4.57.0"
+
+                    response2 = requests.post(url, data={'data': json_data}, headers=headers)
+                    response2 = response2.json()
+
+                    subject = response2["data"]["subject"]
+                    content = response2["data"]["content"]
+
+                    print(f"Subject : {subject}\nContent : {BeautifulSoup(base64.b64decode(content).decode('utf-8'), 'html.parser').get_text()}")
+
                 except ValueError:
                     print("Please enter a valid number")
                     write_log("Invalid number for messages")
 
             except IndexError:
                 for message in response["data"]["messages"]["received"]:
-                    if displayMsg < 5:
+                    if displayMsg < 10:
                         subject = message["subject"]
                         sender = message["from"]["name"]
                         messageId = message["id"]

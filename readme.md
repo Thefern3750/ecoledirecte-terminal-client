@@ -22,4 +22,4 @@ Pour voir les devoirs détaillés, vous devez d'abord vous rendre dans le réper
 
 Le fichier de logs est disponible dans `C:\Users\UTILISATEUR\AppData\Roaming\Ecoledirecte VERSION\`.
 
-Par défaut, vous pouvez voir les 5 derniers messages de la messagerie, si vous souhaitez en voir plus, ou moins, vous devez simplement rajouter UN NOMBRE à le suite de la commande `ls`.
+Par défaut, vous pouvez voir les 10 derniers messages de la messagerie, afin de voir le contenu d'un message, rentrez l'ID de ce message (chiffre entre crochets) à la suite de la commande `ls`.
