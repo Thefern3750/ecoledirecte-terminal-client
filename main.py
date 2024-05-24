@@ -84,6 +84,7 @@ commands = {
             "exit",
             "logout",
             "help",
+            "nano",
             "", # This is for sending back the directory if you write nothing
 }
 
@@ -122,6 +123,8 @@ def check_command(commandSeparators, id, token, username, etablissement, command
                 cd(id, token, username, etablissement, command)
             elif commandSeparators == "ls":
                 ls(dir, id, token, command)
+            elif commandSeparators == "nano":
+                nano(dir, command)
             elif commandSeparators == "help":
                 help()
             elif commandSeparators == "clear":
@@ -136,6 +139,40 @@ def check_command(commandSeparators, id, token, username, etablissement, command
             print(f"Command '{commandSeparators}' not found.")
             write_log(f"{commandSeparators} : Command not found")
 
+def nano(dir, command):
+    if dir == "Settings":
+        try: 
+            dir = command.split(" ", 2)[1].lower()
+            if dir == "autologin":
+                state = input(colors.CYAN + "Do you want to enable autologin ?" + colors.RESET + "(Y/N) : ").lower()
+                if state == "y":
+                    with open(f"C:/Users/{os.getlogin()}/AppData/Roaming/Ecoledirecte {version}/config.json", "r+") as conf:
+                        conf_data = json.load(conf)
+
+                        conf_data["settings"]["autologger"] = "1"
+
+                        conf.seek(0)
+                        json.dump(conf_data, conf, indent=4)
+                        conf.truncate()
+                        print(colors.GREEN + "Autologin enabled" + colors.RESET)
+                        write_log("Autologin enabled")
+                elif state == "n":
+                    with open(f"C:/Users/{os.getlogin()}/AppData/Roaming/Ecoledirecte {version}/config.json", "r+") as conf:
+                        conf_data = json.load(conf)
+
+                        conf_data["settings"]["autologger"] = "0"
+
+                        conf.seek(0)
+                        json.dump(conf_data, conf, indent=4)
+                        conf.truncate()
+                        print(colors.RED + "Autologin disabled" + colors.RESET)
+                        write_log("Autologin disabled")
+                elif state == "":
+                    print("Please enter a valid state to modify")
+                    write_log("No state to modify")
+        except IndexError:
+            print("Please enter a valid setting to modify")
+    
 def cd(id, token, username, etablissement, command):
         try:
             dir = command.split(" ", 2)[1].lower()
@@ -488,7 +525,20 @@ def ls(dir, id, token, command):
             write_log(f"Printing {dir} contenue")
 
         elif dir == "Settings":
-            print("Settings are not available yet")
+            with open(f"C:/Users/{os.getlogin()}/AppData/Roaming/Ecoledirecte {version}/config.json", "r") as conf:
+                conf_data = json.load(conf)
+
+                autologger_state  = conf_data["settings"]["autologger"]
+
+                if autologger_state == "0":
+                    state = colors.RED + "X" + colors.RESET
+                else:
+                    state = colors.GREEN + "X" + colors.RESET
+            print(f"""*========= SETTINGS =========*
+|                            |
+| {colors.BLUE}AUTOLOGIN :{colors.RESET} [{state}]            |
+|                            |
+*============================*""")
             write_log(f"Printing {dir} contenue")
 
 def help():
@@ -901,4 +951,5 @@ class Settings():
 
         self.main()
 
-Login()
+if __name__ == "__main__":
+    Login()
