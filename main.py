@@ -55,8 +55,16 @@ def createConfFile():
     if not os.path.exists(conf_file_path):
         with open(conf_file_path, "w") as conf_file:
             confFile = {
-                "cn":"",
-                "cv":""
+                "settings": {
+                    "autologger": "0"
+                },
+                "autologger": {
+                    "username": "0",
+                    "password": "0",
+                    "cn": "0",
+                    "cv": "0",
+                    "token": "0"
+                }
             }
 
             json_data = json.dumps(confFile, indent=4)
@@ -86,6 +94,7 @@ categories = {
             "EDT",
             "Agenda",
             "Messages",
+            "settings",
             "-help",
 }
 
@@ -95,6 +104,17 @@ def date_format_check(var):
         return True
     except ValueError:
         return False
+    
+class colors:
+    MAGENTA = '\033[95m'  # Magenta
+    BLUE = '\033[94m'     # Blue
+    CYAN = '\033[96m'     # Cyan
+    GREEN = '\033[92m'    # Green
+    YELLOW = '\033[93m'   # Yellow
+    RED = '\033[91m'      # Red
+    RESET = '\033[0m'     # Reset
+    BOLD = '\033[1m'      # Bold
+    UNDERLINE = '\033[4m' # Underline
 
 def check_command(commandSeparators, id, token, username, etablissement, command, dir):
         if commandSeparators in commands:
@@ -147,13 +167,17 @@ def cd(id, token, username, etablissement, command):
             elif dir == "accueil":
                 Main(id, token, username, etablissement)
                 write_log(f"Going in {dir} section")
+
+            elif dir == "settings":
+                Settings(id, token, username, etablissement)
+                write_log(f"Going in {dir} section")
         else:
             print(f"'{dir.capitalize()}' is not a valid directory. Please type 'cd -help' to see the correct directories")
             write_log(f"{dir.capitalize()} : Not a valid directory")
 
 def ls(dir, id, token, command):
         if dir == "Main":
-            print("/edt      /agenda       /notes       /messages")
+            print(colors.CYAN + "/edt      /agenda       /notes       /messages       /settings" + colors.RESET)
             write_log(f"Printing {dir} contenue")
         elif dir == "Notes":
             url = f"https://api.ecoledirecte.com/v3/eleves/{id}/notes.awp?verbe=get&v=4.46.3"
@@ -202,9 +226,9 @@ def ls(dir, id, token, command):
 
             # Thanks to ChatGPT for this part :
 
-            max_len = max(len(subject) for subject in subject_values.keys())
+                max_len = max(len(subject) for subject in subject_values.keys())
 
-            column_widths = [max(len(period), max(len(str(grade)) if str(grade) != 'Disp' else len('Disp') for grade in values.values())) for period, values in zip(periodes_names, subject_values.values())]
+                column_widths = [max(len(period), max(len(str(grade)) if str(grade) != 'Disp' else len('Disp') for grade in values.values())) for period, values in zip(periodes_names, subject_values.values())]
 
             print(f"{'Subject':<{max_len}} | {' | '.join([f'{p:^{w}}' for p, w in zip(periodes_names, column_widths)])}")
 
@@ -463,6 +487,10 @@ def ls(dir, id, token, command):
             
             write_log(f"Printing {dir} contenue")
 
+        elif dir == "Settings":
+            print("Settings are not available yet")
+            write_log(f"Printing {dir} contenue")
+
 def help():
     print("""LIST OF COMMANDS :
           cd : Use it to change of category, see cd -help for more information
@@ -510,7 +538,7 @@ class Login():
 
     def get_credentials(self):
         os.system('cls' if os.name == 'nt' else 'clear')
-        print("""\n\n▓█████  ▄████▄   ▒█████   ██▓    ▓█████    ▓█████▄  ██▓ ██▀███  ▓█████  ▄████▄  ▄▄▄█████▓▓█████     ▄████▄   ██▓     ██▓▓█████  ███▄    █ ▄▄▄█████▓
+        print(colors.BLUE + """\n\n▓█████  ▄████▄   ▒█████   ██▓    ▓█████    ▓█████▄  ██▓ ██▀███  ▓█████  ▄████▄  ▄▄▄█████▓▓█████     ▄████▄   ██▓     ██▓▓█████  ███▄    █ ▄▄▄█████▓
 ▓█   ▀ ▒██▀ ▀█  ▒██▒  ██▒▓██▒    ▓█   ▀    ▒██▀ ██▌▓██▒▓██ ▒ ██▒▓█   ▀ ▒██▀ ▀█  ▓  ██▒ ▓▒▓█   ▀    ▒██▀ ▀█  ▓██▒    ▓██▒▓█   ▀  ██ ▀█   █ ▓  ██▒ ▓▒
 ▒███   ▒▓█    ▄ ▒██░  ██▒▒██░    ▒███      ░██   █▌▒██▒▓██ ░▄█ ▒▒███   ▒▓█    ▄ ▒ ▓██░ ▒░▒███      ▒▓█    ▄ ▒██░    ▒██▒▒███   ▓██  ▀█ ██▒▒ ▓██░ ▒░
 ▒▓█  ▄ ▒▓▓▄ ▄██▒▒██   ██░▒██░    ▒▓█  ▄    ░▓█▄   ▌░██░▒██▀▀█▄  ▒▓█  ▄ ▒▓▓▄ ▄██▒░ ▓██▓ ░ ▒▓█  ▄    ▒▓▓▄ ▄██▒▒██░    ░██░▒▓█  ▄ ▓██▒  ▐▌██▒░ ▓██▓ ░ 
@@ -521,27 +549,50 @@ class Login():
    ░  ░░ ░          ░ ░      ░  ░   ░  ░      ░     ░     ░        ░  ░░ ░                  ░  ░   ░ ░          ░  ░ ░     ░  ░         ░          
        ░                                    ░                          ░                           ░                                               
 
-""")
-        self.identifiant = input("\nlogin as : ")
-        self.password = getpass.getpass(f"{self.identifiant}'s password : ")        
+""" + colors.RESET)
+        with open(f"C:/Users/{os.getlogin()}/AppData/Roaming/Ecoledirecte {version}/config.json", "r") as conf:
+            conf_data = json.load(conf)
 
-        self.data={
-            "identifiant": self.identifiant,
-            "motdepasse": self.password,
-            "isReLogin": False,
-            "uuid": "",
-            "fa": []
-        }
+            if conf_data["settings"]["autologger"] == "0":
+                self.identifiant = input(colors.RESET + "\nlogin as : ")
+                self.password = getpass.getpass(f"{self.identifiant}'s password : ")    
 
-        self.headers = {
-            "Content-Type": "application/form-data",
-            "Accept": "application/json, text/plain, */*",
-            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36",
-        }
+                self.data={
+                    "identifiant": self.identifiant,
+                    "motdepasse": self.password,
+                    "isReLogin": False,
+                    "uuid": "",
+                    "fa": []
+                }
 
-        self.url = "https://api.ecoledirecte.com/v3/login.awp?v=4.53.4"
+                self.headers = {
+                    "Content-Type": "application/form-data",
+                    "Accept": "application/json, text/plain, */*",
+                    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36",
+                }
 
-        self.login()
+                self.url = "https://api.ecoledirecte.com/v3/login.awp?v=4.53.4"
+
+                self.login()
+
+            elif conf_data["settings"]["autologger"] == "1":
+                if conf_data["autologger"]["cn"] == "0":
+                    print("Auto login failed, please try to login manually")
+                    write_log("Auto login failed")
+                    time.sleep(1)
+
+                    # Change autologger to 0 to prevent loops
+                    conf_data["settings"]["autologger"] = "0"
+
+                    conf.seek(0)
+                    json.dump(conf_data, conf, indent=4)
+                    conf.truncate()
+
+                    self.get_credentials()
+                else:
+                    time.sleep(1)
+                    print("Autologin in progress ...")
+                    self.autoLogin()
     
     def login(self):
         json_data = json.dumps(self.data)
@@ -577,15 +628,15 @@ class Login():
 
                     propositions = response.json()["data"]["propositions"]
 
-                    print(f"For security purposes, please answer this question :\n{question}")
+                    print(colors.RED + "For security purposes, please answer this question :" + colors.YELLOW + f"\n{question}" + colors.RESET)
 
                     nb = 1
                     for proposition in propositions:
                         proposition = base64.b64decode(proposition).decode("utf-8")
-                        print(f"Choice n°{nb} {proposition}")
+                        print(colors.CYAN + f"Choice n°{nb} : " + colors.RESET + proposition)
                         nb = nb + 1
 
-                    selection = int(input("Enter the number of your choice: "))
+                    selection = int(input(colors.BLUE + "Enter the number of your choice: " + colors.RESET))
                     selection = base64.b64decode(propositions[selection - 1]).decode("utf-8") # Getting the answer
                     selection = base64.b64encode(selection.encode("utf-8")).decode("utf-8") # Encoding it back to base64
 
@@ -609,8 +660,11 @@ class Login():
 
                         with open(f"C:/Users/{os.getlogin()}/AppData/Roaming/Ecoledirecte {version}/config.json", "r+") as conf:
                             conf_data = json.load(conf)
-                            conf_data["cn"] = cn
-                            conf_data["cv"] = cv
+                            conf_data["autologger"]["username"] = self.identifiant
+                            conf_data["autologger"]["password"] = self.password
+                            conf_data["autologger"]["cn"] = cn
+                            conf_data["autologger"]["cv"] = cv
+                            conf_data["autologger"]["token"] = token
 
                             conf.seek(0)
 
@@ -665,6 +719,72 @@ class Login():
             else:
                 print(f"Error : {response.status_code}")
                 write_log(f"Unexpected ERROR : {response.status_code}")
+
+    def autoLogin(self):
+        url = "https://api.ecoledirecte.com/v3/login.awp?v=4.53.4"
+
+        with open(f"C:/Users/{os.getlogin()}/AppData/Roaming/Ecoledirecte {version}/config.json", "r") as conf:
+            conf_data = json.load(conf)
+
+            username = conf_data["autologger"]["username"]
+            password = conf_data["autologger"]["password"]
+            cn = conf_data["autologger"]["cn"]
+            cv = conf_data["autologger"]["cv"]
+            token = conf_data["autologger"]["token"]
+
+            data={
+                "identifiant": username,
+                "motdepasse": password,
+                "isReLogin": False,
+                "cn": cn,
+                "cv": cv,
+                "uuid": "",
+                "fa": [
+                    {
+                        "cn": cn,
+                        "cv": cv
+                    }
+                ]
+            }
+
+        self.headers = {
+            "Content-Type": "application/form-data",
+            "Accept": "application/json, text/plain, */*",
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36",
+            "X-Token": token
+        }
+        
+        json_data = json.dumps(data)
+
+        response = requests.post(url, data={'data': json_data}, headers=self.headers)
+        json_response = response.json()
+
+        if json_response["code"] == 200:
+            print(f"You're logged as {username}")
+            write_log(f"Client is connected as {username}")
+            time.sleep(1)
+
+            id = json_response["data"]["accounts"][0]["id"]
+            etablissement = json_response["data"]["accounts"][0]["nomEtablissement"]
+
+            os.system('cls' if os.name == 'nt' else 'clear')
+            Main(id, token, username, etablissement)
+        else:
+            print("Auto login failed, please try to login manually")
+            write_log("Auto login failed")
+            time.sleep(1)
+
+            with open(f"C:/Users/{os.getlogin()}/AppData/Roaming/Ecoledirecte {version}/config.json", "r+") as conf:
+                conf_data = json.load(conf)
+    
+                conf_data["settings"]["autologger"] = "0"
+
+                conf.seek(0)
+                json.dump(conf_data, conf, indent=4)
+                conf.truncate()
+
+            self.get_credentials()
+
 class Main():
     def __init__(self, id, token, username, etablissement):
         self.dir = "Main"
@@ -751,6 +871,26 @@ class Messages():
         self.etablissement = etablissement
 
         self.directory = f"[{self.username}@{self.etablissement}/messages] $ "
+
+        self.main()
+
+    def main(self):
+        self.command = input(self.directory)
+        commandSeparators = self.command.split(" ",1)[0]
+        check_command(commandSeparators, self.id, self.token, self.username, self.etablissement, self.command, self.dir)
+
+        self.main()
+
+class Settings():
+    def __init__(self, id, token, username, etablissement):
+        self.dir = "Settings"
+
+        self.id = id
+        self.token = token
+        self.username = username
+        self.etablissement = etablissement
+
+        self.directory = f"[{self.username}@{self.etablissement}/settings] $ "
 
         self.main()
 
