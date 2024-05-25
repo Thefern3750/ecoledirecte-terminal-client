@@ -63,7 +63,8 @@ def createConfFile():
                     "password": "0",
                     "cn": "0",
                     "cv": "0",
-                    "token": "0"
+                    "token": "0",
+                    "id": "0"
                 }
             }
 
@@ -256,6 +257,7 @@ def ls(dir, id, token, command):
             for note in response["data"]["notes"]:
                 subject = note["libelleMatiere"]
                 valeur = note["valeur"]
+                moy = note["moyenneClasse"]
                 periode = note["codePeriode"]
 
                 if periode in periodes and subject in subject_values:
@@ -757,6 +759,14 @@ class Login():
                             token = json_response["token"]
                             etablissement = json_response["data"]["accounts"][0]["nomEtablissement"]
                             credentials_valid = True
+
+                            with open(f"C:/Users/{os.getlogin()}/AppData/Roaming/Ecoledirecte {version}/config.json", "r+") as conf:
+                                conf_data = json.load(conf)
+                                conf_data["autologger"]["id"] = id
+
+                                conf.seek(0)
+                                json.dump(conf_data, conf, indent=4)
+                                conf.truncate()
 
                             os.system('cls' if os.name == 'nt' else 'clear')
                             Main(id, token, self.identifiant, etablissement)
